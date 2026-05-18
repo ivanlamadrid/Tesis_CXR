@@ -1,0 +1,16 @@
+{
+  "image_size": 224,
+  "input_channels": 3,
+  "normalization": {
+    "mean": [0.485, 0.456, 0.406],
+    "std": [0.229, 0.224, 0.225],
+    "reference": "ImageNet"
+  },
+  "accepted_formats": ["png", "jpg", "jpeg", "dcm", "dicom"],
+  "policy": {
+    "dicom": "Solo DICOM anonimizado.",
+    "persistence": "No persistir archivos subidos."
+  },
+  "disclaimer": "Resultado preliminar de uso académico. No constituye diagnóstico clínico."
+}
+

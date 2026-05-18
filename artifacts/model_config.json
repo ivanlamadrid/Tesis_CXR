@@ -1,0 +1,25 @@
+{
+  "project": "Tesis_CXR",
+  "model_name": "cnn_vit_multilabel",
+  "status": "placeholder",
+  "num_labels": 14,
+  "labels": [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Effusion",
+    "Infiltration",
+    "Mass",
+    "Nodule",
+    "Pneumonia",
+    "Pneumothorax",
+    "Consolidation",
+    "Edema",
+    "Emphysema",
+    "Fibrosis",
+    "Pleural Thickening",
+    "Hernia"
+  ],
+  "disclaimer": "Resultado preliminar de uso académico. No constituye diagnóstico clínico.",
+  "note": "El modelo real .pt se generará en fases posteriores y no se incluye en esta fase."
+}
+

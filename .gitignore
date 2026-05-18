@@ -1,0 +1,36 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.env
+
+# Medical datasets and generated data
+data/raw/*
+!data/raw/nih/
+!data/raw/nih/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/splits/*
+!data/splits/.gitkeep
+
+# Heavy model artifacts
+artifacts/*.pt
+artifacts/*.pth
+artifacts/*.onnx
+artifacts/*.ckpt
+
+# Experiment outputs
+logs/
+runs/
+outputs/
+wandb/
+mlruns/
+
+# Editors and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+

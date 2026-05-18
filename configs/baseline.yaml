@@ -1,0 +1,37 @@
+project: Tesis_CXR
+experiment_name: baseline_densenet121
+status: placeholder
+disclaimer: "Resultado preliminar de uso académico. No constituye diagnóstico clínico."
+
+dataset:
+  name: NIH ChestX-ray14
+  task: multilabel_classification
+  labels_file: artifacts/labels.json
+  image_size: 224
+  input_channels: 3
+
+model:
+  architecture: densenet121
+  pretrained: true
+  num_labels: 14
+  output_activation: sigmoid
+
+training:
+  seed: 42
+  batch_size: 32
+  epochs: 20
+  optimizer: adamw
+  learning_rate: 0.0001
+  loss: bce_with_logits
+  note: "Configuración inicial; el entrenamiento real se implementará en fases posteriores."
+
+evaluation:
+  metrics:
+    - per_class_auc
+    - macro_auc
+    - micro_auc
+    - f1
+    - precision
+    - sensitivity
+    - specificity
+

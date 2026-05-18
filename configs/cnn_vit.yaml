@@ -1,0 +1,35 @@
+project: Tesis_CXR
+experiment_name: cnn_vit_multilabel
+status: placeholder
+disclaimer: "Resultado preliminar de uso académico. No constituye diagnóstico clínico."
+
+dataset:
+  name: NIH ChestX-ray14
+  task: multilabel_classification
+  labels_file: artifacts/labels.json
+  image_size: 224
+  input_channels: 3
+
+model:
+  name: cnn_vit_multilabel
+  type: hybrid_cnn_vit
+  cnn_backbone: densenet121
+  vit_backbone: vit_base_patch16_224
+  fusion: concatenation_projection
+  pretrained: true
+  num_labels: 14
+  output_activation: sigmoid
+
+training:
+  seed: 42
+  batch_size: 16
+  epochs: 30
+  optimizer: adamw
+  learning_rate: 0.00005
+  loss: bce_with_logits
+  note: "Configuración inicial; la arquitectura híbrida real se implementará en fases posteriores."
+
+explainability:
+  method: grad_cam
+  status: placeholder
+

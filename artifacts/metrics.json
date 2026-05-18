@@ -1,0 +1,11 @@
+{
+  "status": "not_evaluated_yet",
+  "macro_auc": null,
+  "micro_auc": null,
+  "per_class_auc": {},
+  "f1": null,
+  "precision": null,
+  "sensitivity": null,
+  "specificity": null
+}
+
