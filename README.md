@@ -111,6 +111,26 @@ python scripts/create_patient_splits.py \
 
 Las variantes de escritura del CSV de NIH, como `Pleural_Thickening`, se normalizan a la forma canonica usada por `artifacts/labels.json`: `Pleural Thickening`.
 
+## Fase 3 — Validacion de Dataset PyTorch
+
+Antes de entrenar se valida que los CSV generados puedan alimentar `NIHMultilabelDataset` y un `DataLoader` de PyTorch. Esta fase solo prueba lectura de imagenes, transformaciones basicas, vector multi-label y formas de batch; no entrena modelos.
+
+Comando Kaggle:
+
+```bash
+python scripts/check_dataset.py \
+  --csv-path /kaggle/working/processed/splits/train.csv \
+  --labels-json artifacts/labels.json \
+  --batch-size 8 \
+  --num-workers 2
+```
+
+Salida esperada:
+
+- `Batch images shape: [8, 3, 224, 224]`
+- `Batch targets shape: [8, 14]`
+- confirmacion de que `No Finding` no aparece como etiqueta ni columna.
+
 ## Endpoints Iniciales
 
 ```text

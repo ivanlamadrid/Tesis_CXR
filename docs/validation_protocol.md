@@ -30,4 +30,12 @@ La categoría "No Finding" no se tratará como patología ni como etiqueta de sa
 
 Si una fila de NIH ChestX-ray14 tiene `Finding Labels = "No Finding"`, las 14 etiquetas patológicas del modelo deben quedar en `0`. Esta decisión representa ausencia de hallazgos en la metadata y no agrega una clase adicional.
 
+Antes de iniciar entrenamiento se debe validar el `Dataset` y el `DataLoader` de PyTorch. La verificacion minima incluye:
+
+- Lectura correcta de imagenes desde `image_path`.
+- Conversion de imagen a RGB y tensor de dimensiones `3x224x224`.
+- Vector multi-label `float32` de 14 posiciones.
+- Ausencia de `No Finding` como etiqueta del modelo o columna de salida.
+- Batch consistente con forma `[batch, 3, 224, 224]` para imagenes y `[batch, 14]` para targets.
+
 La validación del proyecto es académica y preliminar. No constituye validación clínica, no debe usarse como evidencia diagnóstica y no reemplaza evaluación médica profesional.

@@ -20,6 +20,7 @@ except ModuleNotFoundError:  # pragma: no cover - exercised only without trainin
         pass
 
 NO_FINDING = "No Finding"
+REQUIRED_METADATA_COLUMNS = ["Image Index", "Patient ID", "image_path"]
 
 
 class NIHMultilabelDataset(Dataset):
@@ -53,7 +54,7 @@ class NIHMultilabelDataset(Dataset):
         if NO_FINDING in self.data.columns:
             raise ValueError('"No Finding" must not be present as a label column.')
 
-        required_columns = ["image_path", *self.labels]
+        required_columns = [*REQUIRED_METADATA_COLUMNS, *self.labels]
         missing = [column for column in required_columns if column not in self.data.columns]
         if missing:
             raise ValueError(f"{self.csv_path} is missing required columns: {missing}")
@@ -64,6 +65,8 @@ class NIHMultilabelDataset(Dataset):
     def __getitem__(self, index: int) -> tuple[Any, torch.Tensor, dict[str, Any]]:
         row = self.data.iloc[index]
         image_path = Path(str(row["image_path"]))
+        if not image_path.exists():
+            raise FileNotFoundError(f"Image file not found for row {index}: {image_path}")
 
         image = Image.open(image_path).convert("RGB")
         if self.transform is not None:
@@ -76,6 +79,7 @@ class NIHMultilabelDataset(Dataset):
             "image_path": str(image_path),
             "image_index": row.get("Image Index"),
             "patient_id": row.get("Patient ID"),
-            "finding_labels": row.get("Finding Labels"),
         }
+        if "Finding Labels" in row.index:
+            metadata["finding_labels"] = row["Finding Labels"]
         return image, target, metadata
