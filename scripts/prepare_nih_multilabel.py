@@ -22,6 +22,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.utils.labels import NO_FINDING, normalize_finding_label
 
 REQUIRED_COLUMNS = ["Image Index", "Finding Labels", "Patient ID"]
+DEFAULT_IMAGE_SUFFIXES = [".png", ".jpg", ".jpeg"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -86,22 +87,77 @@ def validate_metadata(df: pd.DataFrame, metadata_csv: Path) -> None:
         raise ValueError(f"{metadata_csv} is missing required columns: {missing}")
 
 
+def image_suffixes_from_names(image_names: set[str]) -> list[str]:
+    suffixes = sorted({Path(name).suffix.lower() for name in image_names if Path(name).suffix})
+    return suffixes or DEFAULT_IMAGE_SUFFIXES
+
+
+def register_image_path(
+    image_path: Path,
+    image_names: set[str],
+    image_index: dict[str, Path],
+    duplicates: list[str],
+) -> None:
+    image_name = image_path.name
+    if image_name not in image_names:
+        return
+    if image_name in image_index:
+        if image_index[image_name] != image_path:
+            duplicates.append(image_name)
+        return
+    image_index[image_name] = image_path
+
+
+def index_from_patterns(
+    images_root: Path,
+    image_names: set[str],
+    image_index: dict[str, Path],
+    duplicates: list[str],
+    patterns: list[str],
+) -> None:
+    expected_count = len(image_names)
+    for pattern in patterns:
+        for image_path in images_root.glob(pattern):
+            register_image_path(image_path, image_names, image_index, duplicates)
+            if len(image_index) == expected_count:
+                return
+
+
+def print_image_index_progress(stage: str, expected_count: int, indexed_count: int) -> None:
+    missing_count = expected_count - indexed_count
+    print(
+        f"[image-index] {stage}: expected={expected_count} "
+        f"indexed={indexed_count} missing={missing_count}"
+    )
+
+
 def build_recursive_image_index(images_root: Path, image_names: set[str]) -> dict[str, Path]:
     image_index: dict[str, Path] = {}
     duplicates: list[str] = []
+    expected_count = len(image_names)
+    suffixes = image_suffixes_from_names(image_names)
 
-    for image_path in images_root.rglob("*"):
-        if not image_path.is_file() or image_path.name not in image_names:
-            continue
-        if image_path.name in image_index:
-            duplicates.append(image_path.name)
-            continue
-        image_index[image_path.name] = image_path
+    print_image_index_progress("start", expected_count, len(image_index))
+
+    direct_patterns = [f"*{suffix}" for suffix in suffixes]
+    index_from_patterns(images_root, image_names, image_index, duplicates, direct_patterns)
+    print_image_index_progress("after direct folder scan", expected_count, len(image_index))
+
+    if len(image_index) < expected_count:
+        kaggle_patterns = [f"images_*/images/*{suffix}" for suffix in suffixes]
+        index_from_patterns(images_root, image_names, image_index, duplicates, kaggle_patterns)
+        print_image_index_progress("after images_*/images scan", expected_count, len(image_index))
+
+    if len(image_index) < expected_count:
+        recursive_patterns = [f"**/*{suffix}" for suffix in suffixes]
+        index_from_patterns(images_root, image_names, image_index, duplicates, recursive_patterns)
+        print_image_index_progress("after filtered recursive fallback", expected_count, len(image_index))
 
     if duplicates:
         duplicate_preview = ", ".join(sorted(set(duplicates))[:10])
         raise ValueError(f"Duplicate image filenames found during recursive search: {duplicate_preview}")
 
+    print_image_index_progress("final", expected_count, len(image_index))
     return image_index
 
 
@@ -115,11 +171,12 @@ def attach_image_paths(
     if recursive_image_search:
         image_index = build_recursive_image_index(images_root, image_names)
         paths = [image_index.get(image_name) for image_name in df["Image Index"].astype(str)]
+        df["image_path"] = [str(path) if path is not None else "" for path in paths]
+        df["image_exists"] = [path is not None for path in paths]
     else:
         paths = [images_root / image_name for image_name in df["Image Index"].astype(str)]
-
-    df["image_path"] = [str(path) if path is not None else "" for path in paths]
-    df["image_exists"] = [bool(path and path.exists()) for path in paths]
+        df["image_path"] = [str(path) for path in paths]
+        df["image_exists"] = [path.exists() for path in paths]
     return df
 
 
