@@ -38,4 +38,8 @@ Antes de iniciar entrenamiento se debe validar el `Dataset` y el `DataLoader` de
 - Ausencia de `No Finding` como etiqueta del modelo o columna de salida.
 - Batch consistente con forma `[batch, 3, 224, 224]` para imagenes y `[batch, 14]` para targets.
 
+El baseline DenseNet121 se usa como modelo de referencia antes de desarrollar la arquitectura CNN-ViT. Sus metricas permiten establecer una linea base reproducible para comparar mejoras posteriores. La evaluacion del baseline debe reportar perdida de validacion, AUC por clase cuando sea posible, macro AUC, micro AUC, F1 macro, precision macro y recall macro.
+
+El checkpoint del baseline se selecciona por mayor `macro_auc` cuando esta metrica existe; si no puede calcularse, se selecciona por menor `val_loss`. `No Finding` no debe aparecer como etiqueta durante entrenamiento ni evaluacion.
+
 La validación del proyecto es académica y preliminar. No constituye validación clínica, no debe usarse como evidencia diagnóstica y no reemplaza evaluación médica profesional.

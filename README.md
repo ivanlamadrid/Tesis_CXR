@@ -131,6 +131,34 @@ Salida esperada:
 - `Batch targets shape: [8, 14]`
 - confirmacion de que `No Finding` no aparece como etiqueta ni columna.
 
+## Fase 4 — Entrenamiento baseline DenseNet121
+
+El baseline usa DenseNet121 preentrenado en ImageNet con una capa final de 14 logits para clasificacion multi-etiqueta. El modelo no aplica sigmoid internamente; durante entrenamiento se usa `BCEWithLogitsLoss`.
+
+Comando Kaggle:
+
+```bash
+python scripts/train_baseline.py \
+  --train-csv /kaggle/working/processed/splits/train.csv \
+  --val-csv /kaggle/working/processed/splits/val.csv \
+  --labels-json artifacts/labels.json \
+  --output-dir /kaggle/working/artifacts \
+  --epochs 3 \
+  --batch-size 32 \
+  --num-workers 2 \
+  --lr 1e-4 \
+  --image-size 224 \
+  --device auto
+```
+
+Artefactos esperados:
+
+- `baseline_densenet121_best.pt`
+- `baseline_metrics.json`
+- `baseline_training_history.csv`
+
+El mejor checkpoint se selecciona por `macro_auc` cuando esta disponible; si no, por menor `val_loss`.
+
 ## Endpoints Iniciales
 
 ```text
