@@ -9,13 +9,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
 import pandas as pd
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.utils.labels import NO_FINDING, normalize_finding_label
+
 REQUIRED_COLUMNS = ["Image Index", "Finding Labels", "Patient ID"]
-NO_FINDING = "No Finding"
 
 
 def parse_args() -> argparse.Namespace:
@@ -66,7 +72,12 @@ def load_labels(labels_json: Path) -> list[str]:
 def split_findings(value: object) -> list[str]:
     if pd.isna(value):
         return []
-    return [part.strip() for part in str(value).split("|") if part.strip()]
+    findings: list[str] = []
+    for part in str(value).split("|"):
+        normalized = normalize_finding_label(part)
+        if normalized:
+            findings.append(normalized)
+    return findings
 
 
 def validate_metadata(df: pd.DataFrame, metadata_csv: Path) -> None:
@@ -143,6 +154,20 @@ def add_label_columns(df: pd.DataFrame, labels: list[str]) -> tuple[pd.DataFrame
     return pd.concat([df, label_df], axis=1), no_finding_rows
 
 
+def validate_output_label_columns(df: pd.DataFrame, labels: list[str]) -> None:
+    missing = [label for label in labels if label not in df.columns]
+    if missing:
+        raise ValueError(f"Output CSV is missing canonical label columns: {missing}")
+
+    forbidden_columns = ["Pleural_Thickening", NO_FINDING]
+    present_forbidden = [column for column in forbidden_columns if column in df.columns]
+    if present_forbidden:
+        raise ValueError(f"Output CSV must not contain non-canonical label columns: {present_forbidden}")
+
+    if "Pleural Thickening" not in df.columns:
+        raise ValueError('Output CSV must contain canonical column "Pleural Thickening".')
+
+
 def print_summary(df: pd.DataFrame, labels: list[str], no_finding_rows: int) -> None:
     total_rows = len(df)
     unique_patients = df["Patient ID"].nunique()
@@ -173,6 +198,7 @@ def main() -> None:
 
     df, no_finding_rows = add_label_columns(df, labels)
     df = attach_image_paths(df, images_root, args.recursive_image_search)
+    validate_output_label_columns(df, labels)
 
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_csv, index=False)

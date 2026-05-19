@@ -93,8 +93,8 @@ Ejemplo para preparar metadata multilabel en Kaggle:
 
 ```bash
 python scripts/prepare_nih_multilabel.py \
-  --metadata-csv /kaggle/input/nih-chest-xrays/data/Data_Entry_2017.csv \
-  --images-root /kaggle/input/nih-chest-xrays/data \
+  --metadata-csv /kaggle/input/datasets/organizations/nih-chest-xrays/data/Data_Entry_2017.csv \
+  --images-root /kaggle/input/datasets/organizations/nih-chest-xrays/data \
   --output-csv /kaggle/working/processed/nih_multilabel.csv \
   --recursive-image-search
 ```
@@ -108,6 +108,8 @@ python scripts/create_patient_splits.py \
 ```
 
 `No Finding` no es una etiqueta del modelo. Si una fila tiene `Finding Labels = "No Finding"`, las 14 etiquetas patológicas quedan en `0`.
+
+Las variantes de escritura del CSV de NIH, como `Pleural_Thickening`, se normalizan a la forma canonica usada por `artifacts/labels.json`: `Pleural Thickening`.
 
 ## Endpoints Iniciales
 
